@@ -85,6 +85,11 @@ def github_webhook():
 def index():
     return render_template('index.html')
 
+@app.route('/', methods=['GET'])
+def hello_world():
+    return 'Hello, World!'
+
+
 # Fetch the latest events for UI (last 10 events)
 @app.route('/events', methods=['GET'])
 def get_events():
