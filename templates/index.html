@@ -43,31 +43,32 @@
                 .then(data => {
                     let eventsList = document.getElementById('events-list');
                     eventsList.innerHTML = ''; // Clear previous events
-
+    
                     data.forEach(event => {
                         let listItem = document.createElement('li');
-
-                        let eventInfo = `${event.author} ${event.actionType.toLowerCase()} `;
+    
+                        let eventInfo = `${event.author} ${event.actionType.toLowerCase()} `;  // Use 'author'
                         if (event.actionType === 'PUSH') {
-                            eventInfo += `to ${event.toBranch}`;
+                            eventInfo += `to ${event.branch}`;  // Use 'branch'
                         } else if (event.actionType === 'PULL_REQUEST' || event.actionType === 'MERGE') {
-                            eventInfo += `from ${event.branch} to ${event.repository}`;
+                            eventInfo += `to ${event.repository}`;  // Use 'repository'
                         }
-
-                        eventInfo += ` on ${new Date(event.timestamp).toLocaleString()}`;
-
+    
+                        eventInfo += ` on ${new Date(event.timestamp).toLocaleString()}`;  // Format timestamp
+    
                         listItem.innerHTML = eventInfo;
                         eventsList.appendChild(listItem);
                     });
                 });
         }
-
+    
         // Fetch events every 15 seconds
         setInterval(fetchEvents, 15000);
-
+    
         // Initial fetch
         fetchEvents();
     </script>
+    
 
 </body>
 </html>

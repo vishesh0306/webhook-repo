@@ -33,9 +33,9 @@ def github_webhook():
         # Log commit details
         event_data = {
             'actionType': 'PUSH',
-            'pusher': pusher.get('name', 'unknown'),
-            'repository': repository.get('full_name', 'unknown'),
-            'branch': branch,
+            'author': pusher.get('name', 'unknown'),  # Correctly use 'author'
+            'repository': repository.get('full_name', 'unknown'),  # Repository name
+            'branch': branch,  # Branch name
             'timestamp': timestamp,
             'commit_count': len(commits),
             'commits': []
