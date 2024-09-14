@@ -38,6 +38,7 @@ def verify_signature(request):
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
+
     if not verify_signature(request):
         abort(403, 'Invalid signature')
 
@@ -74,11 +75,14 @@ def github_webhook():
             'timestamp': timestamp
         }
 
+    print(event_data)
+
     if event_data:
         events_collection.insert_one(event_data)
         return jsonify({'message': 'Event saved'}), 201
     else:
         return jsonify({'message': 'Unsupported event'}), 400
+    
 
 # Serve the HTML UI
 @app.route('/')
