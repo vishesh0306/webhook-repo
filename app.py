@@ -21,7 +21,7 @@ def github_webhook():
     pull_request = data.get('pull_request')
     timestamp = datetime.now()
 
-    event_data = None
+    event_data = {}
 
     if action == 'push':
         event_data = {
@@ -47,7 +47,6 @@ def github_webhook():
             'timestamp': timestamp
         }
 
-    print(action)
 
     if event_data:
         events_collection.insert_one(event_data)
