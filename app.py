@@ -16,62 +16,60 @@ print(client.list_database_names())
 def github_webhook():
     data = request.json
 
-    # Print the received JSON body
+    # Log the received JSON body for debugging
     print("Received JSON:", data)
 
-    action = data.get('action')
-    sender = data.get('sender', {})
-    ref = data.get('ref')
-    pull_request = data.get('pull_request')
+    # Default timestamp
     timestamp = datetime.now()
 
-    event_data = {}
+    # Handle push events (since there's no action field)
+    if 'ref' in data and 'commits' in data:
+        ref = data.get('ref')
+        commits = data.get('commits', [])
+        pusher = data.get('pusher', {})
+        repository = data.get('repository', {})
+        branch = ref.split('/')[-1] if ref else 'unknown'
 
-    if action == 'push':
+        # Log commit details
         event_data = {
             'actionType': 'PUSH',
-            'author': sender.get('login'),
-            'toBranch': ref.split('/')[-1],
-            'timestamp': timestamp
-        }
-    elif action == 'pull_request':
-        event_data = {
-            'actionType': 'PULL_REQUEST',
-            'author': sender.get('login'),
-            'fromBranch': pull_request.get('head').get('ref'),
-            'toBranch': pull_request.get('base').get('ref'),
-            'timestamp': timestamp
-        }
-    elif action == 'merged':
-        event_data = {
-            'actionType': 'MERGE',
-            'author': sender.get('login'),
-            'fromBranch': pull_request.get('head').get('ref'),
-            'toBranch': pull_request.get('base').get('ref'),
-            'timestamp': timestamp
+            'pusher': pusher.get('name', 'unknown'),
+            'repository': repository.get('full_name', 'unknown'),
+            'branch': branch,
+            'timestamp': timestamp,
+            'commit_count': len(commits),
+            'commits': []
         }
 
-    if event_data:
+        # Process each commit
+        for commit in commits:
+            commit_info = {
+                'id': commit.get('id'),
+                'message': commit.get('message'),
+                'url': commit.get('url'),
+                'author': commit.get('author', {}).get('name', 'unknown'),
+                'committer': commit.get('committer', {}).get('name', 'unknown')
+            }
+            event_data['commits'].append(commit_info)
+
+        # Insert the event data into MongoDB
         events_collection.insert_one(event_data)
-        return jsonify({'message': 'Event saved'}), 201
+        return jsonify({'message': 'Push event saved', 'event': event_data}), 201
     else:
-        return jsonify({'message': 'Unsupported event'}), 400
+        # If the event is unsupported, return an error
+        return jsonify({'message': 'Unsupported event or no action field'}), 400
 
 # Serve the HTML UI
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/', methods=['GET'])
-def hello_world():
-    return 'Hello, World!'
-
 # Fetch the latest events for UI (last 10 events)
 @app.route('/events', methods=['GET'])
 def get_events():
     events = list(events_collection.find().sort('timestamp', -1).limit(10))
     for event in events:
-        event['_id'] = str(event['_id'])
+        event['_id'] = str(event['_id'])  # Convert ObjectId to string for JSON serialization
     return jsonify(events)
 
 if __name__ == '__main__':
