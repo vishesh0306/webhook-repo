@@ -81,7 +81,7 @@ def github_webhook():
         events_collection.insert_one(event_data)
         return jsonify({'message': 'Event saved'}), 201
     else:
-        return jsonify({'message': 'Unsupported event'}), 400
+        return event_data, 400
     
 
 # Serve the HTML UI
