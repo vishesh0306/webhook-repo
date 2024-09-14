@@ -53,8 +53,10 @@ def github_webhook():
             event_data['commits'].append(commit_info)
 
         # Insert the event data into MongoDB
-        events_collection.insert_one(event_data)
-        return jsonify({'message': 'Push event saved', 'event': event_data}), 201
+        result = events_collection.insert_one(event_data)
+        
+        # Return the inserted ID as a string
+        return jsonify({'message': 'Push event saved', 'event': event_data, 'inserted_id': str(result.inserted_id)}), 201
     else:
         # If the event is unsupported, return an error
         return jsonify({'message': 'Unsupported event or no action field'}), 400
@@ -68,8 +70,11 @@ def index():
 @app.route('/events', methods=['GET'])
 def get_events():
     events = list(events_collection.find().sort('timestamp', -1).limit(10))
+    
+    # Convert ObjectId to string for JSON serialization
     for event in events:
         event['_id'] = str(event['_id'])  # Convert ObjectId to string for JSON serialization
+    
     return jsonify(events)
 
 if __name__ == '__main__':
