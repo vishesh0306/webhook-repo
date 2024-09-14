@@ -19,7 +19,7 @@ def github_webhook():
     sender = data.get('sender', {})
     ref = data.get('ref')
     pull_request = data.get('pull_request')
-    timestamp = datetime.utcnow()
+    timestamp = datetime.now()
 
     event_data = None
 
