@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, abort
 from pymongo import MongoClient
 from datetime import datetime
+import hmac
+import hashlib
 
 app = Flask(__name__)
 
@@ -9,14 +11,42 @@ client = MongoClient('mongodb+srv://dudejavishesh363:VE0GLXqnxpPIRimY@cluster0.t
 db = client.githubEvents
 events_collection = db.events
 
+
+#check
+
+print(client.list_database_names())
+
+
+
+# Webhook secret (replace with your actual secret)
+WEBHOOK_SECRET = '123456'
+
+# Verify the GitHub webhook signature
+def verify_signature(request):
+    signature = request.headers.get('X-Hub-Signature-256')
+    if not signature:
+        return False
+    
+    sha_name, signature = signature.split('=')
+    if sha_name != 'sha256':
+        return False
+
+    mac = hmac.new(WEBHOOK_SECRET.encode(), msg=request.data, digestmod=hashlib.sha256)
+    expected_signature = mac.hexdigest()
+
+    return hmac.compare_digest(expected_signature, signature)
+
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
+    if not verify_signature(request):
+        abort(403, 'Invalid signature')
+
     data = request.json
     action = data.get('action')
     sender = data.get('sender', {})
     ref = data.get('ref')
     pull_request = data.get('pull_request')
-    timestamp = datetime.now()
+    timestamp = datetime.utcnow()
 
     event_data = None
 
@@ -50,7 +80,12 @@ def github_webhook():
     else:
         return jsonify({'message': 'Unsupported event'}), 400
 
-# Endpoint to serve events to the UI
+# Serve the HTML UI
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Fetch the latest events for UI (last 10 events)
 @app.route('/events', methods=['GET'])
 def get_events():
     events = list(events_collection.find().sort('timestamp', -1).limit(10))

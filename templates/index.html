@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Event Updates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .timestamp {
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Latest GitHub Events</h1>
+    <ul id="events-list"></ul>
+
+    <script>
+        function fetchEvents() {
+            fetch('/events')
+                .then(response => response.json())
+                .then(data => {
+                    let eventsList = document.getElementById('events-list');
+                    eventsList.innerHTML = ''; // Clear previous events
+
+                    data.forEach(event => {
+                        let listItem = document.createElement('li');
+
+                        let eventInfo = `${event.author} ${event.actionType.toLowerCase()} `;
+                        if (event.actionType === 'PUSH') {
+                            eventInfo += `to ${event.toBranch}`;
+                        } else if (event.actionType === 'PULL_REQUEST' || event.actionType === 'MERGE') {
+                            eventInfo += `from ${event.fromBranch} to ${event.toBranch}`;
+                        }
+
+                        eventInfo += ` on ${new Date(event.timestamp).toLocaleString()}`;
+
+                        listItem.innerHTML = eventInfo;
+                        eventsList.appendChild(listItem);
+                    });
+                });
+        }
+
+        // Fetch events every 15 seconds
+        setInterval(fetchEvents, 15000);
+
+        // Initial fetch
+        fetchEvents();
+    </script>
+
+</body>
+</html>
