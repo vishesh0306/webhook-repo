@@ -47,7 +47,7 @@ def github_webhook():
             'timestamp': timestamp
         }
 
-    print(event_data)
+    print(action)
 
     if event_data:
         events_collection.insert_one(event_data)
