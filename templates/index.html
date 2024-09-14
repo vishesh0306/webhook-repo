@@ -51,7 +51,7 @@
                         if (event.actionType === 'PUSH') {
                             eventInfo += `to ${event.toBranch}`;
                         } else if (event.actionType === 'PULL_REQUEST' || event.actionType === 'MERGE') {
-                            eventInfo += `from ${event.fromBranch} to ${event.toBranch}`;
+                            eventInfo += `from ${event.branch} to ${event.repository}`;
                         }
 
                         eventInfo += ` on ${new Date(event.timestamp).toLocaleString()}`;
