@@ -15,6 +15,10 @@ print(client.list_database_names())
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
     data = request.json
+
+    # Print the received JSON body
+    print("Received JSON:", data)
+
     action = data.get('action')
     sender = data.get('sender', {})
     ref = data.get('ref')
@@ -46,7 +50,6 @@ def github_webhook():
             'toBranch': pull_request.get('base').get('ref'),
             'timestamp': timestamp
         }
-
 
     if event_data:
         events_collection.insert_one(event_data)
